@@ -16,8 +16,13 @@ let rec factorial t = match t with
 let rec isnumerical t = match t with 
     TmZero -> true
   | TmSucc(t1) -> isnumerical t1 
-  | TmPred(t1) -> isnumerical t1 
+  | TmPred(t1) -> isnumerical t1
   | _ -> false
+
+
+(** Doubt for prof - Why have they excluded the PredCase in the isnumerical implementation in the textbook? Counter example 
+    I thought of : Pred(Succ t1) will not be recognized as a numerical value in that case. **)
+
 
 let rec isval t = match t with 
   T -> true|
