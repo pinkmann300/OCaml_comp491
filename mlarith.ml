@@ -1,13 +1,10 @@
-let i = 10 
-let x = 13.2 
-
 type term = T
             | F
             | TmZero
             | TmSucc of term 
             | TmPred of term
             | TmIsZero of term
-            | TmIf of term * term * term ;;
+            | TmIf of term * term * term
 
 (** These denote comments in OCaml. Very similar to the structure in Isabelle. **)
 
@@ -22,13 +19,11 @@ let rec isnumerical t = match t with
   | TmPred(t1) -> isnumerical t1 
   | _ -> false
 
-
 let rec isval t = match t with 
-  T -> 1|
-  F -> 1 | 
-  t when (isnumerical t) -> 1 |
-  _ -> 0
-
+  T -> true|
+  F -> true| 
+  t when (isnumerical t) -> true |
+  _ -> false
 
 let () = 
   let result = factorial 5 in print_int result;
