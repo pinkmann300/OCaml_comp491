@@ -13,22 +13,42 @@ let rec factorial t = match t with
     | 1 -> 1
     | _ ->  (t * factorial(t - 1))
 
+
 let rec isnumerical t = match t with 
     TmZero -> true
   | TmSucc(t1) -> isnumerical t1 
-  | TmPred(t1) -> isnumerical t1
   | _ -> false
 
-
 (** Doubt for prof - Why have they excluded the PredCase in the isnumerical implementation in the textbook? Counter example 
-    I thought of : Pred(Succ t1) will not be recognized as a numerical value in that case. **)
+    I thought of : Pred(Succ t1) will not be recognized as a numerical value in that case. 
+    
+    Doubt clarified: 
+    
+    Pred will never be a term because it is merely a constructor. Succ and zero essentially cover all discrete numbers. 
+    **)
 
+let rec isbool t = match t with 
+    T -> true|
+    F -> true|
+    _ -> false 
 
 let rec isval t = match t with 
   T -> true|
   F -> true| 
   t when (isnumerical t) -> true |
   _ -> false
+
+
+exception NoRuleApplies 
+
+let rec eval1 t = match t with
+  TmIf(T,t2,t3) -> (eval1 t2)|
+  TmIf(F,t2,t3) -> (eval1 t3)|
+  TmIf(t1,t2,t3) -> TmIf((eval1 t1), t2, t3)|
+  TmSucc(t1) -> TmSucc(eval1 t1)|
+  TmPred(TmZero) -> TmZero|
+  TmPred(TmSucc(t1)) when t1 (isnumerical t1) -> t1|
+
 
 let () = 
   let result = factorial 5 in print_int result;
