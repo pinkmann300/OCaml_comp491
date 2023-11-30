@@ -48,6 +48,11 @@ let rec eval1 t = match t with
   TmSucc(t1) -> TmSucc(eval1 t1)|
   TmPred(TmZero) -> TmZero|
   TmPred(TmSucc(t1)) when t1 (isnumerical t1) -> t1|
+  TmPred(t1) -> TmPred(eval1 t1)|
+  TmIsZero(TmZero) -> T|
+  TmIsZero(TmSucc(t1)) when t1 (isnumerical) t1 -> F|
+  TmIsZero(t1) -> TmIsZero(eval1(t1))|
+  _ -> raise NoRuleApplies
 
 
 let () = 
@@ -60,3 +65,4 @@ let () =
   let x7 = TmIf(TmZero,T,F);;
   let re1 = isval x7 in print_int re1;
   print_newline ();; 
+
