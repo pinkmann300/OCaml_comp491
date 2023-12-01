@@ -65,3 +65,5 @@ let () =
   let x7 = TmIf(TmZero,T,F);;
   let re1 = isval x7 in
   Printf.printf "TmIf(TmZero,T,F) is %b\n" re1; 
+
+(** Untyped arithmetic expressions - Chapter 3 from Types and Programming Languages **)
