@@ -8,12 +8,6 @@ type term = T
 
 (** These denote comments in OCaml. Very similar to the structure in Isabelle. **)
 
-let rec factorial t = match t with
-    0 -> 1
-    | 1 -> 1
-    | _ ->  (t * factorial(t - 1))
-
-
 let rec isnumerical t = match t with 
     TmZero -> true
   | TmSucc(t1) -> isnumerical t1 
