@@ -1,47 +1,60 @@
-open Format
+(** The following is an ML implementation of the Lambda Calculus which closely follows the approach taken in Types and Programming Languages by Benjamin Pierce. **)
 
 type term =
-  | TmVar of int * int
-  | TmAbs of string * term
-  | TmApp of term * term
+  | Var of int
+  | Abs of term
+  | App of term * term
 
-type binding = NameBind
-type context = (string * binding) list
+(* Shifting the indices of free variables when entering a subterm *)
+let rec shift d c = function
+  | Var k when k < c -> Var k
+  | Var k -> Var (k + d)
+  | Abs t -> Abs (shift d (c + 1) t)
+  | App(t1, t2) -> App (shift d c t1, shift d c t2)
 
-exception NoRuleApplies
+(* Substituting the variable with the given term *)
+let rec subst j s = function
+  | Var k when k = j -> s
+  | Var k -> Var k
+  | Abs t -> Abs (subst (j + 1) (shift 1 0 s) t)
+  | App(t1, t2) -> App (subst j s t1, subst j s t2)
 
-let rec printtm ctx t = match t with 
-  TmAbs( x,t1) -> let (ctx', x') = pick_fresh_name ctx x in 
-  pr "(lambda "; pr x'; pr ". "; printtm ctx' t1; pr" )"
-  | TmApp( t1, t2) -> pr "("; printtm ctx t1; pr" "; printtm ctx t2; pr ")"
-  | TmVar( x,n) -> 
-    if ctxlength ctx = n then
-      pr (index2name fi ctx x)
-    else
-      pr "[bad index]"
+(* Beta-reduction step *)
+let rec beta_reduce = function
+  | App(Abs t1, t2) -> shift (-1) 0 (subst 0 (shift 1 0 t2) t1)
+  | Var _ | Abs _ as t -> t
+  | App(t1, t2) -> App (beta_reduce t1, beta_reduce t2)
 
-let termShift d t = let rec walk c t = match t with 
-      TmVar( x,n) -> if x>=c then TmVar( x+d, n+d) else TmVar( x,n+d)|
-      TmAbs( x, t1) -> TmAbs( x, walk (c+1) t1)|
-      TmApp( t1, t2) -> TmApp( walk c t1, walk c t2) in walk 0 t 
+(* Examples *)
+let example1 =
+  let term = App(Abs(Var 0), Var 1) in
+  beta_reduce term
 
-let termSubst j s t = let rec walk c t = match t with 
-      TmVar( x, n) -> if x=j+c then termShift c s else TmVar( x,n)
-      |TmAbs( x, t1) -> TmAbs( x, walk (c+1) t1)
-      |TmApp( t1,t2) -> TmApp( walk c t1, walk c t2)
-    in walk 0 t 
+let example2 =
+  let term = App(Abs(App(Var 0, Var 1)), Var 2) in
+  beta_reduce term
 
-let termSubstTop s t = termShift (-1) (termSubst 0 (termShift 1 s) t)
+module Printlambda = struct
+  let rec string_of_term = function
+    | Var k -> string_of_int k
+    | Abs t -> "λ." ^ string_of_term t
+    | App (t1, t2) -> "(" ^ string_of_term t1 ^ " " ^ string_of_term t2 ^ ")"
+end
 
-let rec isval ctx t = match t with 
-    TmAbs(_,_,_) -> true |
-    _ -> false 
 
-let rec eval1 ctx t = match t with 
-    TmApp(TmAbs(x,t12),v2) when isval ctx v2 -> termSubstTop v2 v12 |
-    TmApp(v1,t2) when isval ctx v1 -> let t22 = eval1 ctx t2 in TmApp(v1, t22)|
-    TmApp(t1,t2) -> let t11 = eval1 ctx t1 in TmApp(t11, t2)|
-    _ -> raise NoRuleApplies
+let () =
+  let example1 =
+    let term = App(Abs(Var 0), Var 1) in
+    Printf.printf "Original: %s\n" (Printlambda.string_of_term term);
+    Printf.printf "Reduced: %s\n" (Printlambda.string_of_term (beta_reduce term));
+  in
 
-let rec eval ctx t = 
-  try let t1 = eval1 ctx t in eval ctx t1 with NoRuleApplies -> t 
+  let example2 =
+    let term = App(Abs(App(Var 0, Var 1)), Var 2) in
+    Printf.printf "Original: %s\n" (Printlambda.string_of_term term);
+    Printf.printf "Reduced: %s\n" (Printlambda.string_of_term (beta_reduce term));
+  in
+
+  example1;
+  example2;
+  ()
